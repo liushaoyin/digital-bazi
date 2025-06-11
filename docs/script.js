@@ -1110,79 +1110,18 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
     const deepseekLoading = document.getElementById('deepseekLoading');
     const deepseekResult = document.getElementById('deepseekResult');
     
-    // 显示分析区域和加载动画
+    // 显示分析区域
     deepseekSection.style.display = 'block';
-    deepseekLoading.style.display = 'block';
-    deepseekResult.innerHTML = '';
+    deepseekLoading.style.display = 'none';
     
-    try {
-        console.log('准备发送分析请求:', { baziData, gender, address });
-        
-        const response = await fetch('http://localhost:3000/api/analyze', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                bazi: baziData,
-                gender: gender,
-                address: address
-            })
-        });
-        
-        console.log('收到服务器响应:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            if (errorData.error && errorData.error.includes('Insufficient Balance')) {
-                throw new Error('AI 分析服务暂时不可用（账户余额不足），请联系管理员充值。');
-            }
-            throw new Error(errorData.error || `分析请求失败，请稍后重试 (${response.status} ${response.statusText})`);
-        }
-        
-        const data = await response.json();
-        console.log('分析结果:', data);
-        
-        // 格式化分析结果
-        const formattedResult = `
-            <div class="analysis-section">
-                <h3>性格：</h3>
-                <p>${data.personality || '暂无分析'}</p>
-                
-                <h3>财运：</h3>
-                <p>${data.wealth || '暂无分析'}</p>
-                
-                <h3>事业运：</h3>
-                <p>${data.career || '暂无分析'}</p>
-                
-                <h3>健康运：</h3>
-                <p>${data.health || '暂无分析'}</p>
-                
-                <h3>婚姻生活：</h3>
-                <p>${data.marriage || '暂无分析'}</p>
-            </div>
-        `;
-        
-        deepseekResult.innerHTML = formattedResult;
-    } catch (error) {
-        console.error('分析出错:', error);
-        deepseekResult.innerHTML = `
-            <div class="error-message">
-                <h3>分析过程中出现错误</h3>
-                <p>${error.message}</p>
-                <p>请确保：</p>
-                <ul>
-                    <li>服务器已启动（运行 node server.js）</li>
-                    <li>服务器地址正确（http://localhost:3000）</li>
-                    <li>网络连接正常</li>
-                    <li>AI 服务账户余额充足</li>
-                </ul>
-            </div>
-        `;
-    } finally {
-        deepseekLoading.style.display = 'none';
-    }
+    // 显示临时消息
+    deepseekResult.innerHTML = `
+        <div class="info-message">
+            <h3>AI 分析功能暂时不可用</h3>
+            <p>由于网站部署在 GitHub Pages 上，AI 分析功能暂时无法使用。</p>
+            <p>我们正在努力将后端服务部署到云服务器上，敬请期待！</p>
+        </div>
+    `;
 }
 
 // 修改表单提交处理函数
