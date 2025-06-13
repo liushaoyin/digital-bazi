@@ -561,43 +561,103 @@ function checkAllFieldsFilled() {
            elements.address.value;
 }
 
-// 检查并提交表单
+// 地址历史记录相关函数
+function saveAddressToHistory(address) {
+    if (!address) return;
+    
+    // 获取现有历史记录
+    let addressHistory = JSON.parse(localStorage.getItem('addressHistory') || '[]');
+    
+    // 移除重复的地址
+    addressHistory = addressHistory.filter(addr => addr !== address);
+    
+    // 将新地址添加到开头
+    addressHistory.unshift(address);
+    
+    // 只保留最近的5个地址
+    addressHistory = addressHistory.slice(0, 5);
+    
+    // 保存回 localStorage
+    localStorage.setItem('addressHistory', JSON.stringify(addressHistory));
+    
+    // 更新地址历史显示
+    updateAddressHistoryDisplay();
+}
+
+function updateAddressHistoryDisplay() {
+    const addressHistory = JSON.parse(localStorage.getItem('addressHistory') || '[]');
+    const addressInput = document.getElementById('address');
+    const historyContainer = document.getElementById('addressHistory') || createAddressHistoryContainer();
+    
+    // 清空现有历史记录
+    historyContainer.innerHTML = '';
+    
+    // 添加历史记录标题
+    if (addressHistory.length > 0) {
+        const title = document.createElement('div');
+        title.className = 'address-history-title';
+        title.textContent = '最近使用的地址：';
+        historyContainer.appendChild(title);
+    }
+    
+    // 添加历史记录项
+    addressHistory.forEach(address => {
+        const item = document.createElement('div');
+        item.className = 'address-history-item';
+        item.textContent = address;
+        item.onclick = () => {
+            addressInput.value = address;
+            checkAndSubmit();
+        };
+        historyContainer.appendChild(item);
+    });
+}
+
+function createAddressHistoryContainer() {
+    const container = document.createElement('div');
+    container.id = 'addressHistory';
+    container.className = 'address-history';
+    
+    // 将容器插入到地址输入框后面
+    const addressInput = document.getElementById('address');
+    addressInput.parentNode.insertBefore(container, addressInput.nextSibling);
+    
+    return container;
+}
+
+// 修改 checkAndSubmit 函数，添加地址保存逻辑
 function checkAndSubmit() {
     if (checkAllFieldsFilled()) {
+        const address = document.getElementById('address').value;
+        saveAddressToHistory(address); // 保存地址到历史记录
         performBaZiCalculation();
     }
 }
 
-// 初始化应用
+// 修改 initApp 函数，添加地址历史记录初始化
 function initApp() {
-    // 初始化日期选择器
-    initDatePicker();
-
-    // 为所有输入字段添加失去焦点事件
-    const inputFields = ['birthdate', 'birthtime', 'gender', 'address'];
-    inputFields.forEach(fieldId => {
-        const element = elements[fieldId];
-        if (element) {
-            element.addEventListener('blur', checkAndSubmit);
-            element.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    checkAndSubmit();
-                }
-            });
+    try {
+        checkDependencies();
+        initDatePicker();
+        updateAddressHistoryDisplay(); // 初始化地址历史记录显示
+        
+        // 设置时辰选择器的默认值
+        const hourSelect = document.getElementById('hour');
+        if (hourSelect) {
+            hourSelect.value = getCurrentHour();
         }
-    });
-
-    // 确保所有依赖加载完成后再执行初始排盘
-    if (typeof Lunar !== 'undefined' && typeof flatpickr !== 'undefined') {
-        // 延迟执行初始排盘，确保所有DOM元素都已加载
-        setTimeout(() => {
-            if (checkAllFieldsFilled()) {
-                performBaZiCalculation();
-            }
-        }, 500);
-    } else {
-        console.error('必要的依赖未加载完成');
+        
+        // 添加事件监听器
+        document.getElementById('birthdate').addEventListener('change', checkAndSubmit);
+        document.getElementById('hour').addEventListener('change', checkAndSubmit);
+        document.getElementById('gender').addEventListener('change', checkAndSubmit);
+        document.getElementById('address').addEventListener('change', checkAndSubmit);
+        
+        // 初始检查
+        checkAndSubmit();
+    } catch (error) {
+        console.error('初始化应用时出错:', error);
+        alert('初始化应用失败: ' + error.message);
     }
 }
 
