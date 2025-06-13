@@ -97,16 +97,65 @@ module.exports = async (req, res) => {
                 }
             });
         }
+
+        // 获取当前年份和对应的地支
         const now = new Date();
+        const currentYear = now.getFullYear();
         const currentLunar = Lunar.fromDate(now);
         const currentYearZhi = currentLunar.getYearZhi();
+        
+        // 计算太岁冲突
         const birthYearConflicts = [];
-        if (bazi.yearZhi === currentYearZhi) birthYearConflicts.push('值太岁');
-        if (zhiRelations['刑'][bazi.yearZhi]?.includes(currentYearZhi)) birthYearConflicts.push('刑太岁');
-        if (zhiRelations['冲'][bazi.yearZhi]?.includes(currentYearZhi)) birthYearConflicts.push('冲太岁');
-        if (zhiRelations['破'][bazi.yearZhi]?.includes(currentYearZhi)) birthYearConflicts.push('破太岁');
-        if (zhiRelations['害'][bazi.yearZhi]?.includes(currentYearZhi)) birthYearConflicts.push('害太岁');
-        const prompt = `\n请根据以下八字信息进行分析：\n\n阳历日期：${bazi.solarDate}\n农历日期：${bazi.lunarDate}\n性别：${gender}\n出生地：${address}\n\n八字信息：\n年柱：${bazi.yearGan}${bazi.yearZhi}\n月柱：${bazi.monthGan}${bazi.monthZhi}\n日柱：${bazi.dayGan}${bazi.dayZhi}\n时柱：${bazi.hourGan}${bazi.hourZhi}\n\n日主：${bazi.dayMaster}\n五行：${bazi.fiveElements}\n喜用神：${bazi.favorableElements}\n\n太岁信息：\n${birthYearConflicts.length > 0 ? `本年太岁：${currentYearZhi}\n太岁冲突：${birthYearConflicts.join('、')}` : '本年无太岁冲突'}\n\n请从以下几个方面进行分析：\n1. 性格特征\n2. 财运分析\n3. 事业运势\n4. 健康状况\n5. 婚姻生活\n\n请用简洁明了的语言进行分析，每个方面控制在200字以内。`;
+        if (bazi.yearZhi === currentYearZhi) {
+            birthYearConflicts.push('值太岁');
+        }
+        if (zhiRelations['刑'][bazi.yearZhi]?.includes(currentYearZhi)) {
+            birthYearConflicts.push('刑太岁');
+        }
+        if (zhiRelations['冲'][bazi.yearZhi]?.includes(currentYearZhi)) {
+            birthYearConflicts.push('冲太岁');
+        }
+        if (zhiRelations['破'][bazi.yearZhi]?.includes(currentYearZhi)) {
+            birthYearConflicts.push('破太岁');
+        }
+        if (zhiRelations['害'][bazi.yearZhi]?.includes(currentYearZhi)) {
+            birthYearConflicts.push('害太岁');
+        }
+
+        // 构建分析提示
+        const prompt = `
+请根据以下八字信息进行分析：
+
+阳历日期：${bazi.solarDate}
+农历日期：${bazi.lunarDate}
+性别：${gender}
+出生地：${address}
+
+八字信息：
+年柱：${bazi.yearGan}${bazi.yearZhi}
+月柱：${bazi.monthGan}${bazi.monthZhi}
+日柱：${bazi.dayGan}${bazi.dayZhi}
+时柱：${bazi.hourGan}${bazi.hourZhi}
+
+日主：${bazi.dayMaster}
+五行：${bazi.fiveElements}
+喜用神：${bazi.favorableElements}
+
+太岁信息：
+当前年份：${currentYear}年
+本年太岁：${currentYearZhi}
+${birthYearConflicts.length > 0 ? `太岁冲突：${birthYearConflicts.join('、')}` : '本年无太岁冲突'}
+
+请从以下几个方面进行分析：
+1. 性格特征
+2. 财运分析
+3. 事业运势
+4. 健康状况
+5. 婚姻生活
+
+请用简洁明了的语言进行分析，每个方面控制在200字以内。
+注意：分析时要考虑当前年份（${currentYear}年）的运势影响。`;
+
         const analysis = await callDeepSeekAPI(prompt);
         const sections = analysis.split('\n\n');
         const result = {
@@ -116,6 +165,7 @@ module.exports = async (req, res) => {
             health: sections.find(s => s.includes('健康状况')) || '暂无分析',
             marriage: sections.find(s => s.includes('婚姻生活')) || '暂无分析'
         };
+
         res.json(result);
     } catch (error) {
         res.status(500).json({
