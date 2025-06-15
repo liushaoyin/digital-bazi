@@ -2,43 +2,37 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/analyze.js",
+            "src": "server.js",
             "use": "@vercel/node"
         },
         {
-            "src": "api/cors.js",
-            "use": "@vercel/edge"
+            "src": "*.html",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "*.css",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "*.js",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "*.png",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
         {
-            "src": "/api/cors",
-            "methods": ["GET", "POST", "OPTIONS"],
-            "headers": {
-                "Access-Control-Allow-Origin": "https://liushaoyin.github.io",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Max-Age": "86400"
-            },
-            "dest": "/api/cors.js"
+            "src": "/api/(.*)",
+            "dest": "/server.js"
         },
         {
-            "src": "/api/analyze",
-            "methods": ["GET", "POST", "OPTIONS"],
-            "headers": {
-                "Access-Control-Allow-Origin": "https://liushaoyin.github.io",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Max-Age": "86400"
-            },
-            "dest": "/api/analyze.js"
+            "src": "/(.*)",
+            "dest": "/server.js"
         }
     ],
     "env": {
-        "DEEPSEEK_API_KEY": "sk-86abd23433e94d1fa5266565f9a7f32f",
-        "NODE_ENV": "production",
-        "DEEPSEEK_API_URL": "https://api.deepseek.com/v1/chat/completions"
+        "DEEPSEEK_API_KEY": "@deepseek_api_key"
     }
 } 
