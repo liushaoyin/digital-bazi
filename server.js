@@ -81,11 +81,42 @@ app.post('/api/analyze', async (req, res) => {
         const birthDate = new Date(bazi.solarDate);
         const today = new Date();
         const age = today.getFullYear() - birthDate.getFullYear();
+
+        // 根据八字推算退休年龄
+        let retirementAge = gender === 'male' ? 60 : 50; // 默认退休年龄
+        
+        if (gender === 'female') {
+            // 女性退休年龄推算逻辑
+            const dayMaster = bazi.dayMaster; // 日主
+            const favorableElements = bazi.favorableElements.split(' '); // 喜用神
+            
+            // 如果日主为金或水，且喜用神包含金或水，倾向于55岁退休
+            if ((dayMaster === '庚' || dayMaster === '辛' || dayMaster === '壬' || dayMaster === '癸') &&
+                (favorableElements.includes('金') || favorableElements.includes('水'))) {
+                retirementAge = 55;
+            }
+            
+            // 如果日主为木或火，且喜用神包含木或火，倾向于50岁退休
+            if ((dayMaster === '甲' || dayMaster === '乙' || dayMaster === '丙' || dayMaster === '丁') &&
+                (favorableElements.includes('木') || favorableElements.includes('火'))) {
+                retirementAge = 50;
+            }
+            
+            // 如果日主为土，根据喜用神判断
+            if (dayMaster === '戊' || dayMaster === '己') {
+                if (favorableElements.includes('金') || favorableElements.includes('水')) {
+                    retirementAge = 55;
+                } else if (favorableElements.includes('木') || favorableElements.includes('火')) {
+                    retirementAge = 50;
+                }
+            }
+        }
+
         const ageGroup = age < 1 ? '婴儿' : 
                         age < 6 ? '幼儿' :
                         age < 18 ? '少年' :
                         age < 35 ? '青年' :
-                        age < (gender === 'male' ? 60 : 55) ? '壮年' : '老年';
+                        age < retirementAge ? '壮年' : '老年';
 
         // 构建分析提示
         const prompt = `
@@ -98,6 +129,8 @@ app.post('/api/analyze', async (req, res) => {
 出生地：${address}
 当前年龄：${age}岁
 年龄段：${ageGroup}
+${age >= retirementAge ? `退休状态：已退休（${gender === 'male' ? '男' : '女'}性${retirementAge}岁退休）` : ''}
+${gender === 'female' && age < retirementAge ? `预计退休年龄：${retirementAge}岁（根据八字推算）` : ''}
 
 四柱八字：
 年柱：${bazi.yearGan}${bazi.yearZhi}
@@ -140,10 +173,11 @@ age < 35 ? `
 - 事业发展方向
 - 近期（3个月内）发展重点
 - 职业规划建议` :
-age < (gender === 'male' ? 60 : 55) ? `
+age < retirementAge ? `
 - 事业发展方向
 - 近期（3个月内）发展重点
-- 职业规划建议` : `
+- 职业规划建议
+${gender === 'female' ? `- 退休规划建议（预计${retirementAge}岁退休）` : ''}` : `
 - 退休生活规划
 - 近期（3个月内）生活重点
 - 养生保健建议`}
@@ -177,8 +211,10 @@ ${age >= 18 ? '- 太岁与婚姻运的关系' : ''}
 注意：
 1. 分析时要考虑当前年份（${currentYear}年）的运势影响
 2. 分析内容要符合${ageGroup}年龄段的特点
-3. 对于${age < 1 ? '婴儿' : age < 18 ? '未成年人' : '成年人'}，重点关注${age < 1 ? '生长发育和父母养育' : age < 18 ? '学习和成长' : '事业和生活'}方面的内容
-4. 避免分析${age < 18 ? '婚姻、事业、退休' : age < 35 ? '退休' : ''}等不相关内容`;
+3. 对于${age < 1 ? '婴儿' : age < 18 ? '未成年人' : '成年人'}，重点关注${age < 1 ? '生长发育和父母养育' : age < 18 ? '学习和成长' : age >= retirementAge ? '退休生活和养生保健' : '事业和生活'}方面的内容
+4. 避免分析${age < 18 ? '婚姻、事业、退休' : age < retirementAge ? '退休' : ''}等不相关内容
+5. ${age >= retirementAge ? '由于已经退休，分析重点应放在退休生活和养生保健方面，而不是事业发展' : ''}
+6. ${gender === 'female' && age < retirementAge ? `根据八字推算，预计${retirementAge}岁退休，分析时请考虑这个时间点` : ''}`;
 
         console.log('准备调用 DeepSeek API...');
         console.log('API 密钥前6位:', process.env.DEEPSEEK_API_KEY.substring(0, 6) + '...');
