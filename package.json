@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'No build step required'",
-    "deploy": "bash deploy.sh"
+    "build": "cp -r index.html styles.css script.js api/ .env.example gh-pages/",
+    "deploy": "git checkout gh-pages && git merge master && git push origin gh-pages && git checkout master"
   },
   "dependencies": {
     "axios": "^1.6.7",
