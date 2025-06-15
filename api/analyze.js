@@ -1,5 +1,5 @@
-const axios = require('axios');
-const { Lunar } = require('lunar-javascript');
+import axios from 'axios';
+import { Lunar } from 'lunar-javascript';
 
 // 地支关系判断
 const zhiRelations = {
@@ -74,27 +74,42 @@ async function callDeepSeekAPI(prompt) {
     return response.data.choices[0].message.content;
 }
 
-// Vercel Serverless Function
-module.exports = async (req, res) => {
+// Vercel Edge Function
+export const config = {
+    runtime: 'edge',
+};
+
+export default async function handler(req) {
     // CORS 头
-    res.setHeader('Access-Control-Allow-Origin', 'https://liushaoyin.github.io');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    const headers = {
+        'Access-Control-Allow-Origin': 'https://liushaoyin.github.io',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Content-Type': 'application/json'
+    };
+
+    // 处理 OPTIONS 请求
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        return new Response(null, {
+            status: 200,
+            headers
+        });
     }
 
     try {
-        const { bazi, gender, address } = req.body;
+        const { bazi, gender, address } = await req.json();
         if (!bazi || !gender || !address) {
-            return res.status(400).json({
+            return new Response(JSON.stringify({
                 error: '缺少必要参数',
                 details: {
                     bazi: !bazi ? '缺少八字信息' : null,
                     gender: !gender ? '缺少性别信息' : null,
                     address: !address ? '缺少地址信息' : null
                 }
+            }), {
+                status: 400,
+                headers
             });
         }
 
@@ -166,11 +181,17 @@ ${birthYearConflicts.length > 0 ? `太岁冲突：${birthYearConflicts.join('、
             marriage: sections.find(s => s.includes('婚姻生活')) || '暂无分析'
         };
 
-        res.json(result);
+        return new Response(JSON.stringify(result), {
+            status: 200,
+            headers
+        });
     } catch (error) {
-        res.status(500).json({
+        return new Response(JSON.stringify({
             error: error.message || '分析过程出现错误',
             details: error.response?.data || null
+        }), {
+            status: 500,
+            headers
         });
     }
-}; 
+} 

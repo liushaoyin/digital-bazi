@@ -1314,7 +1314,7 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
     try {
         console.log('准备发送分析请求:', { baziData, gender, address });
         
-        const response = await fetch('http://localhost:3000/api/analyze', {
+        const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
