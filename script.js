@@ -1374,8 +1374,6 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
                 <p>${error.message}</p>
                 <p>请确保：</p>
                 <ul>
-                    <li>服务器已启动（运行 node server.js）</li>
-                    <li>服务器地址正确（http://localhost:3000）</li>
                     <li>网络连接正常</li>
                     <li>AI 服务账户余额充足</li>
                 </ul>

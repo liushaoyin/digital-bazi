@@ -21,7 +21,7 @@ export default async function handler(req) {
 
     try {
         // 转发请求到 analyze API
-        const response = await fetch('https://digital-bazi.vercel.app/api/analyze', {
+        const response = await fetch('/api/analyze', {
             method: req.method,
             headers: {
                 'Content-Type': 'application/json'
