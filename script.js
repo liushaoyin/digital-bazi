@@ -1318,8 +1318,11 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Origin': 'https://liushaoyin.github.io'
             },
+            mode: 'cors',
+            credentials: 'omit',
             body: JSON.stringify({
                 bazi: baziData,
                 gender: gender,
