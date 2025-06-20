@@ -30,15 +30,11 @@ body {
 }
 
 .container {
-    max-width: 900px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.95);
+    padding: 1.2rem;
+    margin: 1rem;
     border-radius: 20px;
-    box-shadow: 0 10px 40px var(--shadow-color);
-    backdrop-filter: blur(10px);
-    padding: 1.8rem;
-    margin: 1.5rem auto;
-    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    box-shadow: 0 4px 24px var(--shadow-color);
 }
 
 h1 {
@@ -200,10 +196,10 @@ h1[title].active::before {
 
 /* 输入区域样式优化 */
 .input-section {
-    background: #ffffff;
     padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px var(--shadow-color);
+    margin-bottom: 1.2rem;
+    border-radius: 16px;
+    background: #fff;
 }
 
 .form-row {
@@ -272,19 +268,57 @@ h1[title].active::before {
 
 .address-input-group {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.6rem;
+    align-items: center;
+    width: 100%;
+}
+
+.address-input-group input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: var(--input-bg, #fff);
+}
+
+.address-input-group input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+    outline: none;
 }
 
 .location-btn {
-    padding: 0.5rem;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     background: var(--primary-bg);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    color: var(--text-primary);
+}
+
+.location-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.location-btn:active {
+    transform: scale(0.95);
+}
+
+.location-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .button-group {
@@ -388,11 +422,12 @@ h1[title].active::before {
 
 /* 结果卡片样式优化 */
 .result-card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px var(--shadow-color);
-    padding: 1rem;
-    margin-bottom: 1rem;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0.2rem 0 0.2rem 0;
+    margin: 0;
 }
 
 .result-card h2 {
@@ -407,24 +442,46 @@ h1[title].active::before {
 }
 
 .bazi-grid {
-    gap: 0.4rem;
-    margin: 0.8rem 0;
-    padding: 0.6rem;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    min-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.bazi-grid::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .bazi-column {
-    padding: 0.4rem;
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 0.8rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .bazi-header {
-    margin-bottom: 0.3rem;
-    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
 .bazi-cell {
-    padding: 0.2rem;
-    margin: 0.1rem 0;
-    font-size: 0.95rem;
+    padding: 0.5rem;
+    background: var(--input-bg);
+    border-radius: 6px;
+    margin: 0.3rem 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
 }
 
 .bazi-details {
@@ -507,7 +564,8 @@ h1[title].active::before {
 }
 
 .result-content {
-    padding: 1.2rem;
+    padding: 0;
+    margin: 0;
 }
 
 .date-info {
@@ -758,13 +816,14 @@ h1[title].active::before {
     }
 
     .bazi-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.4rem;
-        padding: 0.6rem;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 
     .bazi-column {
-        padding: 0.4rem;
+        min-width: 60px;
+        padding: 0.5rem;
     }
 
     .bazi-header {
@@ -773,9 +832,9 @@ h1[title].active::before {
     }
 
     .bazi-cell {
-        padding: 0.2rem;
-        margin: 0.1rem 0;
+        padding: 0.3rem;
         font-size: 1rem;
+        margin: 0.2rem 0;
     }
 
     .bazi-details {
@@ -846,41 +905,49 @@ h1[title].active::before {
 /* 小屏幕手机优化 */
 @media (max-width: 480px) {
     .container {
-        padding: 0.8rem;
+        padding: 0.7rem;
         margin: 0.3rem;
     }
-
-    h1 {
-        font-size: 1.6rem;
-    }
-
-    .guide-tip {
-        font-size: 0.85rem;
-        padding: 5px 12px;
-    }
-
     .input-section {
-        padding: 1rem;
+        padding: 0.5rem;
+        margin-bottom: 0.7rem;
     }
-
+    .form-group {
+        margin-bottom: 0.06rem;
+    }
+    .form-group label {
+        font-size: 0.75rem;
+        margin-bottom: 0.04rem;
+    }
     .form-group input,
     .form-group select {
-        height: 2.6rem;
-        font-size: 0.95rem;
+        height: 1.1rem;
+        font-size: 0.78rem;
+        padding: 0.03rem 0.08rem;
     }
-
-    .bazi-grid {
-        grid-template-columns: repeat(4, 1fr);
+    .solar-date-picker select {
+        height: 1.1rem;
+        font-size: 0.78rem;
+        padding: 0.02rem 0.05rem;
     }
-
-    .bazi-cell {
-        font-size: 1.1rem;
-        padding: 0.5rem;
+    .solar-date-picker span {
+        font-size: 0.7rem;
     }
-
+    .date-type-selector {
+        margin-top: 0.03rem;
+        gap: 0.08rem;
+    }
+    .radio-label {
+        font-size: 0.7rem;
+        padding: 0.03rem 0.08rem;
+    }
+    .button-group {
+        margin-top: 0.05rem;
+    }
     .calculate-btn {
-        padding: 0.9rem;
-        font-size: 1rem;
+        width: 100%;
+        padding: 0.15rem;
+        font-size: 0.8rem;
     }
 }
 
@@ -1340,80 +1407,74 @@ h1[title].active::before {
 
 /* 地址历史记录样式 */
 .address-history {
-    margin-top: 8px;
-    margin-bottom: 16px;
+    display: none !important;
 }
 
 .address-history-title {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+}
+
+.address-history-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .address-history-item {
-    display: inline-block;
-    margin: 4px;
-    padding: 4px 8px;
-    background-color: #f0f0f0;
-    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    color: #333;
-    transition: background-color 0.2s;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
 }
 
 .address-history-item:hover {
-    background-color: #e0e0e0;
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
-.button-group {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.calculate-btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px var(--shadow-color);
-}
-
-.calculate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--shadow-color);
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary-hover));
-}
-
-.calculate-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 10px var(--shadow-color);
-}
-
-/* 超小屏幕适配 */
-@media (max-width: 360px) {
-    .bazi-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.3rem;
-        padding: 0.4rem;
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .address-input-group {
+        gap: 0.4rem;
     }
 
-    .bazi-cell {
+    .address-input-group input {
+        padding: 0.5rem 0.6rem;
         font-size: 0.9rem;
     }
 
-    .detail-item {
-        font-size: 0.85rem;
+    .location-btn {
+        width: 36px;
+        height: 36px;
     }
 
-    .tai-sui-item {
+    .location-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .address-history {
+        margin-top: 0.6rem;
+        padding: 0.6rem;
+    }
+
+    .address-history-title {
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .address-history-item {
+        padding: 0.3rem 0.6rem;
         font-size: 0.85rem;
     }
 }
@@ -1583,5 +1644,199 @@ h1[title].active::before {
     .developer-info span[title]:hover::before,
     .developer-info span[title].active::before {
         display: none;
+    }
+}
+
+/* 地址建议样式 */
+.address-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.address-suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.address-suggestion-item:hover {
+    background: var(--hover-bg);
+}
+
+/* Toast 提示样式 */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.9rem;
+    z-index: 9999;
+    animation: toast-slide-in 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toast-success {
+    background: #4caf50;
+}
+
+.toast-error {
+    background: #f44336;
+}
+
+.toast-info {
+    background: #2196f3;
+}
+
+.toast-fade-out {
+    animation: toast-fade-out 0.3s ease forwards;
+}
+
+@keyframes toast-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toast-fade-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* 加载动画样式 */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 公历日期选择器样式 */
+.solar-date-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.solar-date-picker select {
+    height: 2.8rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.solar-date-picker select:hover {
+    border-color: var(--primary-color);
+}
+
+.solar-date-picker select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color-light);
+}
+
+.solar-date-picker span {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.solar-year {
+    width: 80px;
+}
+
+.solar-month,
+.solar-day {
+    width: 60px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .solar-date-picker {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.2rem;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .solar-date-picker select {
+        height: 2.5rem;
+        font-size: 0.95rem;
+        padding: 0.3rem;
+    }
+
+    .solar-year {
+        width: 65px;
+    }
+
+    .solar-month,
+    .solar-day {
+        width: 45px;
+    }
+
+    .solar-date-picker span {
+        font-size: 0.95rem;
+        margin: 0 0.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .solar-date-picker {
+        gap: 0.1rem;
+    }
+    .solar-date-picker select {
+        width: 60px;
+        min-width: 0;
+        font-size: 0.95rem;
+        padding: 0.2rem 0.3rem;
+    }
+    .solar-year {
+        width: 80px;
+    }
+    .solar-month,
+    .solar-day {
+        width: 40px;
+    }
+    .solar-date-picker span {
+        font-size: 0.9rem;
+        margin: 0 0.05rem;
     }
 } 

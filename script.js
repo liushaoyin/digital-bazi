@@ -67,22 +67,129 @@ function initDatePicker() {
         if (flatpickrInstance) {
             flatpickrInstance.destroy();
         }
+
+        // 创建公历年份选项
+        const currentYear = new Date().getFullYear();
+        const yearOptions = Array.from({length: 100}, (_, i) => currentYear - i);
         
-        flatpickrInstance = flatpickr(birthdateInput, {
-            locale: 'zh',
-            dateFormat: 'Y-m-d',
-            maxDate: 'today',
-            disableMobile: true,
-            onChange: function(selectedDates, dateStr) {
-                checkAndSubmit();
-            }
+        // 创建公历月份选项
+        const monthOptions = Array.from({length: 12}, (_, i) => i + 1);
+        
+        // 创建公历日期选项（默认31天）
+        const dayOptions = Array.from({length: 31}, (_, i) => i + 1);
+
+        // 创建自定义输入框
+        const customInput = document.createElement('div');
+        customInput.className = 'solar-date-picker';
+        customInput.innerHTML = `
+            <select class="solar-year" id="solarYear" name="solarYear"></select>
+            <span>年</span>
+            <select class="solar-month" id="solarMonth" name="solarMonth"></select>
+            <span>月</span>
+            <select class="solar-day" id="solarDay" name="solarDay"></select>
+            <span>日</span>
+        `;
+
+        // 填充选项
+        const yearSelect = customInput.querySelector('.solar-year');
+        const monthSelect = customInput.querySelector('.solar-month');
+        const daySelect = customInput.querySelector('.solar-day');
+
+        yearOptions.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
         });
+
+        monthOptions.forEach(month => {
+            const option = document.createElement('option');
+            option.value = month;
+            option.textContent = month;
+            monthSelect.appendChild(option);
+        });
+
+        dayOptions.forEach(day => {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        });
+
+        // 设置初始值为当前日期
+        const today = new Date();
+        yearSelect.value = today.getFullYear();
+        monthSelect.value = today.getMonth() + 1;
+        updateDayOptions();
+        daySelect.value = today.getDate();
+
+        // 替换原始输入框
+        birthdateInput.style.display = 'none';
+        birthdateInput.parentNode.insertBefore(customInput, birthdateInput);
+
+        // 更新日期选项的函数
+        function updateDayOptions() {
+            const year = parseInt(yearSelect.value);
+            const month = parseInt(monthSelect.value);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            
+            // 清空现有选项
+            daySelect.innerHTML = '';
+            
+            // 添加新的日期选项
+            for (let day = 1; day <= daysInMonth; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                daySelect.appendChild(option);
+            }
+        }
+
+        // 添加事件监听器
+        yearSelect.addEventListener('change', function() {
+            updateDayOptions();
+            // 若当前日大于新月份最大天数，自动选中最大天数
+            if (parseInt(daySelect.value) > daySelect.options.length) {
+                daySelect.value = daySelect.options.length;
+            }
+            updateBirthdateValue();
+        });
+
+        monthSelect.addEventListener('change', function() {
+            updateDayOptions();
+            if (parseInt(daySelect.value) > daySelect.options.length) {
+                daySelect.value = daySelect.options.length;
+            }
+            updateBirthdateValue();
+        });
+
+        daySelect.addEventListener('change', updateBirthdateValue);
+
+        // 更新隐藏输入框的值
+        function updateBirthdateValue() {
+            const year = yearSelect.value;
+            const month = String(monthSelect.value).padStart(2, '0');
+            const day = String(daySelect.value).padStart(2, '0');
+            birthdateInput.value = `${year}-${month}-${day}`;
+            checkAndSubmit();
+        }
+
+        // 初始化日期选项
+        updateDayOptions();
+        // 同步初始值到隐藏输入框
+        updateBirthdateValue();
     }
 
     // 初始化农历日期选择器
     function initLunarDatePicker() {
         if (flatpickrInstance) {
             flatpickrInstance.destroy();
+        }
+
+        // 隐藏公历日期选择器
+        const solarPicker = document.querySelector('.solar-date-picker');
+        if (solarPicker) {
+            solarPicker.remove();
         }
 
         // 创建农历年份选项
@@ -160,11 +267,12 @@ function initDatePicker() {
     dateTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'solar') {
-                birthdateInput.style.display = 'block';
+                // 隐藏农历日期选择器
                 const lunarPicker = document.querySelector('.lunar-date-picker');
                 if (lunarPicker) {
                     lunarPicker.remove();
                 }
+                birthdateInput.style.display = 'block';
                 initSolarDatePicker();
             } else {
                 initLunarDatePicker();
@@ -611,7 +719,7 @@ function updateAddressHistoryDisplay() {
         const container = createAddressHistoryContainer();
         const title = document.createElement('div');
         title.className = 'address-history-title';
-        title.textContent = '历史地址';
+        title.textContent = '之前地址';
         container.appendChild(title);
 
         addressHistory.forEach(address => {
@@ -663,49 +771,45 @@ function initApp() {
         const getLocationBtn = document.getElementById('getLocation');
         if (getLocationBtn) {
             getLocationBtn.addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    // 显示加载状态
-                    getLocationBtn.disabled = true;
-                    getLocationBtn.innerHTML = '<div class="spinner"></div>';
-                    
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            const { latitude, longitude } = position.coords;
-                            document.getElementById('latitude').value = latitude;
-                            document.getElementById('longitude').value = longitude;
+                const addressInput = document.getElementById('address');
+                const getLocationBtn = this;
+                
+                // 显示加载状态
+                getLocationBtn.disabled = true;
+                getLocationBtn.innerHTML = '<div class="spinner"></div>';
+                getLocationBtn.title = '正在获取位置...';
+                
+                // 使用高德地图定位服务
+                AMap.plugin('AMap.Geolocation', function() {
+                    const geolocation = new AMap.Geolocation({
+                        enableHighAccuracy: true,  // 是否使用高精度定位，默认:true
+                        timeout: 10000,           // 超过10秒后停止定位，默认：无穷大
+                        buttonPosition: 'RB',     // 定位按钮停靠位置
+                        buttonOffset: new AMap.Pixel(10, 20), // 定位按钮与设置的停靠位置的偏移量，默认：10px
+                        zoomToAccuracy: true      // 定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+                    });
+
+                    geolocation.getCurrentPosition(function(status, result) {
+                        if (status === 'complete') {
+                            // 定位成功
+                            const address = result.formattedAddress;
+                            addressInput.value = address;
+                            saveAddressToHistory(address);
                             
-                            // 使用高德地图API进行逆地理编码
-                            AMap.plugin('AMap.Geocoder', function() {
-                                const geocoder = new AMap.Geocoder();
-                                geocoder.getAddress([longitude, latitude], function(status, result) {
-                                    if (status === 'complete' && result.info === 'OK') {
-                                        const address = result.regeocode.formattedAddress;
-                                        document.getElementById('address').value = address;
-                                        saveAddressToHistory(address);
-                                        checkAndSubmit();
-                                    }
-                                    // 恢复按钮状态
-                                    getLocationBtn.disabled = false;
-                                    getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.52 8 12 8 12s8-6.48 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>';
-                                });
-                            });
-                        },
-                        function(error) {
-                            console.error('获取位置失败:', error);
-                            alert('获取位置失败，请手动输入地址');
-                            // 恢复按钮状态
-                            getLocationBtn.disabled = false;
-                            getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.52 8 12 8 12s8-6.48 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>';
-                        },
-                        {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
+                            // 显示成功提示
+                            showToast('位置获取成功', 'success');
+                        } else {
+                            // 定位失败
+                            console.error('获取位置信息失败:', result);
+                            showToast('获取位置失败，请手动输入地址', 'error');
                         }
-                    );
-                } else {
-                    alert('您的浏览器不支持地理定位功能，请手动输入地址');
-                }
+                        
+                        // 恢复按钮状态
+                        getLocationBtn.disabled = false;
+                        getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.52 8 12 8 12s8-6.48 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>';
+                        getLocationBtn.title = '获取当前位置';
+                    });
+                });
             });
         }
 
@@ -895,9 +999,13 @@ function displayResults(bazi, additionalInfo) {
 
 // 获取地理位置功能
 document.getElementById('getLocation').addEventListener('click', function() {
+    const addressInput = document.getElementById('address');
+    const getLocationBtn = this;
+    
     // 显示加载状态
-    this.style.pointerEvents = 'none';
-    this.style.opacity = '0.5';
+    getLocationBtn.disabled = true;
+    getLocationBtn.innerHTML = '<div class="spinner"></div>';
+    getLocationBtn.title = '正在获取位置...';
     
     // 使用高德地图定位服务
     AMap.plugin('AMap.Geolocation', function() {
@@ -913,19 +1021,91 @@ document.getElementById('getLocation').addEventListener('click', function() {
             if (status === 'complete') {
                 // 定位成功
                 const address = result.formattedAddress;
-                document.getElementById('address').value = address;
+                addressInput.value = address;
+                saveAddressToHistory(address);
+                
+                // 显示成功提示
+                showToast('位置获取成功', 'success');
             } else {
                 // 定位失败
                 console.error('获取位置信息失败:', result);
-                alert('获取位置信息失败，请手动输入地址');
+                showToast('获取位置失败，请手动输入地址', 'error');
             }
             
             // 恢复按钮状态
-            document.getElementById('getLocation').style.pointerEvents = 'auto';
-            document.getElementById('getLocation').style.opacity = '1';
+            getLocationBtn.disabled = false;
+            getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.52 8 12 8 12s8-6.48 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>';
+            getLocationBtn.title = '获取当前位置';
         });
     });
 });
+
+// 添加地址输入验证和自动完成功能
+document.getElementById('address').addEventListener('input', function() {
+    const address = this.value.trim();
+    if (address.length > 0) {
+        // 使用高德地图API进行地址搜索提示
+        AMap.plugin('AMap.AutoComplete', function() {
+            const autoComplete = new AMap.AutoComplete({
+                city: '全国'
+            });
+            
+            autoComplete.search(address, function(status, result) {
+                if (status === 'complete' && result.tips) {
+                    const tips = result.tips;
+                    if (tips.length > 0) {
+                        // 显示地址建议
+                        showAddressSuggestions(tips);
+                    }
+                }
+            });
+        });
+    }
+});
+
+// 显示地址建议
+function showAddressSuggestions(tips) {
+    // 移除现有的建议列表
+    const existingSuggestions = document.querySelector('.address-suggestions');
+    if (existingSuggestions) {
+        existingSuggestions.remove();
+    }
+    
+    // 创建建议列表容器
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.className = 'address-suggestions';
+    
+    // 添加建议项
+    tips.forEach(tip => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'address-suggestion-item';
+        suggestionItem.textContent = tip.name;
+        suggestionItem.addEventListener('click', () => {
+            document.getElementById('address').value = tip.name;
+            suggestionsContainer.remove();
+            saveAddressToHistory(tip.name);
+        });
+        suggestionsContainer.appendChild(suggestionItem);
+    });
+    
+    // 将建议列表添加到地址输入框下方
+    document.getElementById('address').parentNode.appendChild(suggestionsContainer);
+}
+
+// 显示提示消息
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // 2秒后自动移除
+    setTimeout(() => {
+        toast.classList.add('toast-fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
 
 // 添加缓存对象
 const taiSuiCache = {
@@ -1318,11 +1498,8 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Origin': 'https://liushaoyin.github.io'
+                'Accept': 'application/json'
             },
-            mode: 'cors',
-            credentials: 'omit',
             body: JSON.stringify({
                 bazi: baziData,
                 gender: gender,
@@ -1334,10 +1511,8 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            if (errorData.error && errorData.error.includes('Insufficient Balance')) {
-                throw new Error('AI 分析服务暂时不可用（账户余额不足），请联系管理员充值。');
-            }
-            throw new Error(errorData.error || `分析请求失败，请稍后重试 (${response.status} ${response.statusText})`);
+            console.error('API错误响应:', errorData);
+            throw new Error(errorData.error || `服务器错误，请稍后重试 (${response.status})`);
         }
         
         const data = await response.json();
@@ -1375,12 +1550,7 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
             <div class="error-message">
                 <h3>分析过程中出现错误</h3>
                 <p>${error.message}</p>
-                <p>请确保：</p>
-                <ul>
-                    <li>网络连接正常</li>
-                    <li>AI 服务账户余额充足</li>
-                </ul>
-                <p>错误详情：${error.message}</p>
+                <p>请稍后重试或联系管理员</p>
             </div>
         `;
         throw error;

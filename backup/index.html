@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>数字八字</title>
+    <!-- 添加 favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <!-- 先加载样式 -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+</head>
+<body>
+    <div class="container">
+        <h1 title="根据出生年月日时生成四柱八字，推算五行喜忌与犯太岁情况，并为您提供：
+🔮 个性分析 + 近3个月【财运/事业/健康/婚姻】趋势预测
+📌 注：内容仅供娱乐参考">人生说明书</h1>
+        <div class="input-section">
+            <form id="dateForm" name="dateForm" method="post">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="birthdate">出生日期</label>
+                        <div class="date-input-group">
+                            <input type="text" id="birthdate" name="birthdate" placeholder="请选择出生日期" autocomplete="off" required>
+                            <div class="date-type-selector">
+                                <label class="radio-label">
+                                    <input type="radio" id="solarDate" name="dateType" value="solar" checked> 公历
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" id="lunarDate" name="dateType" value="lunar"> 农历
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="birthtime">出生时辰</label>
+                        <select id="birthtime" name="birthtime" required>
+                            <option value="">请选择出生时辰</option>
+                            <option value="0">子时 (23:00-01:00)</option>
+                            <option value="2">丑时 (01:00-03:00)</option>
+                            <option value="4">寅时 (03:00-05:00)</option>
+                            <option value="6">卯时 (05:00-07:00)</option>
+                            <option value="8">辰时 (07:00-09:00)</option>
+                            <option value="10">巳时 (09:00-11:00)</option>
+                            <option value="12">午时 (11:00-13:00)</option>
+                            <option value="14">未时 (13:00-15:00)</option>
+                            <option value="16">申时 (15:00-17:00)</option>
+                            <option value="18">酉时 (17:00-19:00)</option>
+                            <option value="20">戌时 (19:00-21:00)</option>
+                            <option value="22">亥时 (21:00-23:00)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="gender">性别</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">请选择性别</option>
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="address">住址</label>
+                        <div class="address-input-group">
+                            <input type="text" id="address" name="address" placeholder="请输入住址" autocomplete="street-address" required>
+                            <button type="button" id="getLocation" name="getLocation" class="location-btn" title="获取当前位置">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2a8 8 0 0 0-8 8c0 5.52 8 12 8 12s8-6.48 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="hidden" id="latitude" name="latitude">
+                        <input type="hidden" id="longitude" name="longitude">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="calculateBtn" name="calculateBtn" class="calculate-btn">开始测算</button>
+                    <button type="submit" id="submitBtn" name="submitBtn" class="submit-btn" style="display: none;">开始分析</button>
+                </div>
+            </form>
+        </div>
+        <div class="result-section" id="resultSection" style="display: none;">
+            <div class="result-card">
+                <h2>你的人生偏好</h2>
+                <div class="result-content">
+                    <div class="bazi-grid">
+                        <div class="bazi-column">
+                            <div class="bazi-header">年柱</div>
+                            <div class="bazi-cell" id="yearGan">-</div>
+                            <div class="bazi-cell" id="yearZhi">-</div>
+                        </div>
+                        <div class="bazi-column">
+                            <div class="bazi-header">月柱</div>
+                            <div class="bazi-cell" id="monthGan">-</div>
+                            <div class="bazi-cell" id="monthZhi">-</div>
+                        </div>
+                        <div class="bazi-column">
+                            <div class="bazi-header">日柱</div>
+                            <div class="bazi-cell" id="dayGan">-</div>
+                            <div class="bazi-cell" id="dayZhi">-</div>
+                        </div>
+                        <div class="bazi-column">
+                            <div class="bazi-header">时柱</div>
+                            <div class="bazi-cell" id="hourGan">-</div>
+                            <div class="bazi-cell" id="hourZhi">-</div>
+                        </div>
+                    </div>
+                    <div class="date-display">
+                        <div class="date-item">
+                            <span class="date-label">公历：</span>
+                            <span id="solarDate" class="date-value">-</span>
+                        </div>
+                        <div class="date-item">
+                            <span class="date-label">农历：</span>
+                            <span id="lunarDate" class="date-value">-</span>
+                        </div>
+                    </div>
+                    <div class="preference-section">
+                        <h3>人生偏好</h3>
+                        <div class="preference-content">
+                            <div class="preference-item">
+                                <span class="preference-label">日主：</span>
+                                <span id="dayMaster" class="preference-value"></span>
+                            </div>
+                            <div class="preference-item">
+                                <span class="preference-label">五行：</span>
+                                <span id="fiveElements" class="preference-value"></span>
+                            </div>
+                            <div class="preference-item">
+                                <span class="preference-label">喜用神：</span>
+                                <span id="favorableElements" class="preference-value"></span>
+                            </div>
+                            <div class="preference-item">
+                                <span class="preference-label">忌用神：</span>
+                                <span id="unfavorableElements" class="preference-value"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tai-sui-section">
+                        <h3>太岁信息</h3>
+                        <div class="tai-sui-grid">
+                            <div class="tai-sui-column">
+                                <h4>当前时间</h4>
+                                <div class="tai-sui-item">
+                                    <span class="label">年：</span>
+                                    <span id="currentYearTaiSui" class="value">-</span>
+                                </div>
+                                <div class="tai-sui-item">
+                                    <span class="label">月：</span>
+                                    <span id="currentMonthTaiSui" class="value">-</span>
+                                </div>
+                                <div class="tai-sui-item">
+                                    <span class="label">日：</span>
+                                    <span id="currentDayTaiSui" class="value">-</span>
+                                </div>
+                            </div>
+                            <div class="tai-sui-column">
+                                <h4>出生时间</h4>
+                                <div class="tai-sui-item">
+                                    <span class="label">年太岁：</span>
+                                    <span id="birthYearTaiSui" class="value">-</span>
+                                </div>
+                                <div class="tai-sui-item">
+                                    <span class="label">月太岁：</span>
+                                    <span id="birthMonthTaiSui" class="value">-</span>
+                                </div>
+                                <div class="tai-sui-item">
+                                    <span class="label">日太岁：</span>
+                                    <span id="birthDayTaiSui" class="value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DeepSeek 分析结果区域 -->
+        <div class="deepseek-section" id="deepseekSection" style="display: none;">
+            <div class="result-card">
+                <h2>分析结果</h2>
+                <div class="result-content">
+                    <div class="analysis-content" id="deepseekAnalysis">
+                        <div class="loading-spinner" id="deepseekLoading">
+                            <div class="spinner"></div>
+                            <p>正在分析中...</p>
+                        </div>
+                        <div id="deepseekResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚信息 -->
+        <div class="footer-info">
+            <div class="version">版本号：1.0.0</div>
+            <div class="developer-info">
+                <span title="可提供画符（本命符、防身符、太岁符、招财符、文昌符、腰痛符……）、旺运（中宫旺运、点灯阵）及其他道法服务">程序设计：刘少银</span>
+                <span class="contact">联系电话：15629213139</span>
+                <span class="contact">QQ：185473360</span>
+                <span class="contact wechat-btn">
+                    微信
+                    <div class="qr-popup">
+                        <img src="lsywx.png" alt="微信二维码" class="qr-code">
+                        <p>扫码添加微信</p>
+                    </div>
+                </span>
+            </div>
+        </div>
+    </div>
+    <!-- 按顺序加载脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.7/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: '您的安全密钥',
+        }
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=b655489009c872ec6a4c92ff1ee3faa5"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>授权码管理</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; }
+    input, button { margin: 0.2rem; }
+  </style>
+</head>
+<body>
+  <h2>授权码管理</h2>
+  <form id="addForm">
+    <input id="code" placeholder="授权码" required>
+    <input id="times" type="number" placeholder="次数" min="0" value="10">
+    <label><input id="lifetime" type="checkbox">终身</label>
+    <button type="submit">添加</button>
+  </form>
+  <table>
+    <thead>
+      <tr><th>授权码</th><th>剩余次数</th><th>已用</th><th>终身</th><th>操作</th></tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+  <script>
+    async function load() {
+      const res = await fetch('/api/admin-codes');
+      const data = await res.json();
+      document.getElementById('list').innerHTML = data.map(item => `
+        <tr>
+          <td>${item.code}</td>
+          <td>${item.times}</td>
+          <td>${item.used || 0}</td>
+          <td>${item.lifetime ? '是' : ''}</td>
+          <td><button onclick="del('${item.code}')">删除</button></td>
+        </tr>
+      `).join('');
+    }
+    async function del(code) {
+      await fetch('/api/admin-codes', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ code }) });
+      load();
+    }
+    document.getElementById('addForm').onsubmit = async e => {
+      e.preventDefault();
+      const code = document.getElementById('code').value;
+      const times = parseInt(document.getElementById('times').value);
+      const lifetime = document.getElementById('lifetime').checked;
+      await fetch('/api/admin-codes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ code, times, lifetime }) });
+      load();
+      e.target.reset();
+    };
+    load();
+  </script>
+</body>
+</html>
