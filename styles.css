@@ -40,7 +40,7 @@ body {
 h1 {
     text-align: center;
     color: var(--text-primary);
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.5rem;
     font-size: 2.2rem;
     font-weight: 700;
     letter-spacing: -0.5px;
@@ -196,26 +196,35 @@ h1[title].active::before {
 
 /* 输入区域样式优化 */
 .input-section {
-    padding: 1rem;
-    margin-bottom: 1.2rem;
-    border-radius: 16px;
-    background: #fff;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
 }
 
 .form-row {
-    margin-bottom: 0.6rem;
+    display: flex;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
 }
 
 .form-group {
-    margin-bottom: 0.4rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    flex-basis: 100%;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 0.3rem;
-    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: var(--text-secondary);
     font-size: 0.95rem;
-    font-weight: 500;
 }
 
 .form-group input,
@@ -322,15 +331,13 @@ h1[title].active::before {
 }
 
 .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 0.8rem;
-    margin-top: 0.8rem;
+    text-align: center;
+    margin-top: 1.5rem;
 }
 
 .calculate-btn {
     padding: 0.6rem 1.5rem;
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
     border: none;
     border-radius: 6px;
