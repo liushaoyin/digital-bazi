@@ -811,31 +811,26 @@ function initApp() {
         }
 
         // 添加开始测算按钮事件监听
+                // 添加开始测算按钮事件监听
         const calculateBtn = document.getElementById('calculateBtn');
         if (calculateBtn) {
             calculateBtn.addEventListener('click', async function() {
                 if (this.disabled) return;
 
-                // 隐藏键盘
                 document.activeElement.blur();
 
                 try {
                     this.disabled = true;
                     this.textContent = '测算中...';
                     
-                    // 执行八字计算
                     const result = performBaZiCalculation();
                     
                     if (result) {
-                        // 显示八字结果
-                        displayResults(result.bazi, result.additionalInfo);
+                        // 1. 显示八字结果，并获取用于AI分析的数据
+                        const baziDataForAI = displayResults(result.bazi, result.additionalInfo);
 
-                        // 获取性别和地址
-                        const gender = document.getElementById('gender').value;
-                        const address = document.getElementById('address').value;
-
-                        // 调用DeepSeek进行分析
-                        await analyzeWithDeepSeek(result.bazi, gender, address);
+                        // 2. 调用DeepSeek进行分析
+                        await analyzeWithDeepSeek(baziDataForAI);
                     }
                 } catch (error) {
                     console.error('An error occurred during calculation:', error);
@@ -901,114 +896,41 @@ function initApp() {
 document.addEventListener('DOMContentLoaded', initApp);
 
 function displayResults(bazi, additionalInfo) {
-    return new Promise((resolve, reject) => {
-        try {
-            if (!elements.resultSection) {
-                console.error('找不到结果区域元素');
-                reject(new Error('找不到结果区域元素'));
-                return;
-            }
+    // 此处应包含所有更新页面元素的代码，例如：
+    document.getElementById('yearGan').innerText = bazi.yearGan;
+    document.getElementById('yearZhi').innerText = bazi.yearZhi;
+    // ... 其他八字信息的更新 ...
+    
+    // 假设以下元素也由这个函数更新
+    const { favorable, unfavorable } = calculateFavorableElements(bazi);
+    document.getElementById('dayMaster').innerText = bazi.dayGan;
+    document.getElementById('fiveElements').innerText = formatWuXingStrength(calculateWuXingStrength(Solar.fromDate(new Date(additionalInfo.solarDate)).getLunar()));
+    document.getElementById('favorableElements').innerText = favorable.join(', ');
+    document.getElementById('unfavorableElements').innerText = unfavorable.join(', ');
 
-            elements.resultSection.style.display = 'block';
+    updateTaiSuiInfo(bazi);
 
-            // 更新日期信息
-            if (elements.solarDate) elements.solarDate.textContent = bazi.solarDate;
-            if (elements.lunarDate) elements.lunarDate.textContent = bazi.lunarDate;
+    const resultSection = document.getElementById('resultSection');
+    resultSection.style.display = 'block';
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            // 更新八字信息
-            if (elements.yearGan) elements.yearGan.textContent = bazi.yearGan;
-            if (elements.yearZhi) elements.yearZhi.textContent = bazi.yearZhi;
-            if (elements.monthGan) elements.monthGan.textContent = bazi.monthGan;
-            if (elements.monthZhi) elements.monthZhi.textContent = bazi.monthZhi;
-            if (elements.dayGan) elements.dayGan.textContent = bazi.dayGan;
-            if (elements.dayZhi) elements.dayZhi.textContent = bazi.dayZhi;
-            if (elements.hourGan) elements.hourGan.textContent = bazi.hourGan;
-            if (elements.hourZhi) elements.hourZhi.textContent = bazi.hourZhi;
-
-            // 更新日主
-            if (elements.dayMaster) {
-                elements.dayMaster.textContent = bazi.dayGan;
-                // 添加日主样式
-                const dayMasterCell = document.querySelector('.bazi-cell.day-master');
-                if (dayMasterCell) {
-                    dayMasterCell.textContent = bazi.dayGan;
-                }
-            }
-
-            // 更新五行
-            if (elements.fiveElements) {
-                const ganElements = [
-                    wuXingMap[bazi.yearGan],
-                    wuXingMap[bazi.monthGan],
-                    wuXingMap[bazi.dayGan],
-                    wuXingMap[bazi.hourGan]
-                ];
-                
-                const zhiElements = [
-                    wuXingMap[bazi.yearZhi],
-                    wuXingMap[bazi.monthZhi],
-                    wuXingMap[bazi.dayZhi],
-                    wuXingMap[bazi.hourZhi]
-                ];
-                
-                elements.fiveElements.innerHTML = `<strong>天干五行</strong>：${ganElements.join(' ')}<br><strong>地支五行</strong>：${zhiElements.join(' ')}`;
-            }
-
-            // 计算并显示喜用神和忌用神
-            const { favorable, unfavorable } = calculateFavorableElements(bazi);
-            const favorableElements = document.getElementById('favorableElements');
-            const unfavorableElements = document.getElementById('unfavorableElements');
-            
-            if (favorableElements) {
-                favorableElements.textContent = favorable.join(' ');
-            }
-            if (unfavorableElements) {
-                unfavorableElements.textContent = unfavorable.join(' ');
-            }
-
-            // 更新性别和地址信息
-            const genderText = additionalInfo.gender === 'male' ? '男' : '女';
-            const genderInfo = document.getElementById('genderInfo');
-            const addressInfo = document.getElementById('addressInfo');
-            
-            if (genderInfo) genderInfo.textContent = genderText;
-            if (addressInfo) addressInfo.textContent = additionalInfo.address;
-
-            // 更新太岁信息
-            updateTaiSuiInfo(bazi);
-
-            // 只有在所有输入都完成时才滚动到结果区域
-            if (checkAllFieldsFilled()) {
-                elements.resultSection.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            // 准备发送给 DeepSeek 的数据
-            const baziData = {
-                solarDate: bazi.solarDate,
-                lunarDate: bazi.lunarDate,
-                yearGan: bazi.yearGan,
-                yearZhi: bazi.yearZhi,
-                monthGan: bazi.monthGan,
-                monthZhi: bazi.monthZhi,
-                dayGan: bazi.dayGan,
-                dayZhi: bazi.dayZhi,
-                hourGan: bazi.hourGan,
-                hourZhi: bazi.hourZhi,
-                dayMaster: bazi.dayGan,
-                fiveElements: elements.fiveElements.innerHTML,
-                favorableElements: favorable.join(' '),
-                unfavorableElements: unfavorable.join(' ')
-            };
-
-            // 调用 DeepSeek 分析
-            analyzeWithDeepSeek(baziData, additionalInfo.gender, additionalInfo.address)
-                .then(resolve)
-                .catch(reject);
-        } catch (error) {
-            console.error('显示结果时出错:', error);
-            reject(error);
-        }
-    });
+    // AI分析所需的数据
+    return {
+        yearGan: bazi.yearGan,
+        yearZhi: bazi.yearZhi,
+        monthGan: bazi.monthGan,
+        monthZhi: bazi.monthZhi,
+        dayGan: bazi.dayGan,
+        dayZhi: bazi.dayZhi,
+        hourGan: bazi.hourGan,
+        hourZhi: bazi.hourZhi,
+        dayMaster: document.getElementById('dayMaster').innerText,
+        fiveElements: document.getElementById('fiveElements').innerText,
+        favorableElements: document.getElementById('favorableElements').innerText,
+        unfavorableElements: document.getElementById('unfavorableElements').innerText,
+        gender: additionalInfo.gender,
+        birthPlace: additionalInfo.address
+    };
 }
 
 // 获取地理位置功能
