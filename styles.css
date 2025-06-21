@@ -1846,4 +1846,30 @@ h1[title].active::before {
         font-size: 0.9rem;
         margin: 0 0.05rem;
     }
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.analysis-item {
+    background: var(--primary-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.analysis-item h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.analysis-item p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.7;
 } 

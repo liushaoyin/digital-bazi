@@ -1486,101 +1486,87 @@ function updateTaiSuiInfo(bazi) {
 }
 
 // 添加 DeepSeek API 调用函数
-async function analyzeWithDeepSeek(baziData, gender, address) {
+async function analyzeWithDeepSeek(bazi, gender, address) {
     const deepseekSection = document.getElementById('deepseekSection');
     const deepseekLoading = document.getElementById('deepseekLoading');
     const deepseekResult = document.getElementById('deepseekResult');
-    
-    if (!deepseekSection || !deepseekLoading || !deepseekResult) {
-        console.error('找不到必要的DOM元素:', {
-            deepseekSection: !!deepseekSection,
-            deepseekLoading: !!deepseekLoading,
-            deepseekResult: !!deepseekResult
-        });
-        return;
-    }
-    
-    // 显示分析区域和加载动画
+
+    // 重置并显示加载状态
     deepseekSection.style.display = 'block';
+    deepseekResult.style.display = 'none'; // 先隐藏结果区
     deepseekLoading.style.display = 'flex';
-    deepseekResult.innerHTML = '';
+
+    // 重置各项分析内容
+    document.getElementById('analysis-personality').innerText = '正在加载...';
+    document.getElementById('analysis-wealth').innerText = '正在加载...';
+    document.getElementById('analysis-career').innerText = '正在加载...';
+    document.getElementById('analysis-health').innerText = '正在加载...';
+    document.getElementById('analysis-marriage').innerText = '正在加载...';
+
     deepseekSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
+
+    const baziData = {
+        yearGan: bazi.yearGan,
+        yearZhi: bazi.yearZhi,
+        monthGan: bazi.monthGan,
+        monthZhi: bazi.monthZhi,
+        dayGan: bazi.dayGan,
+        dayZhi: bazi.dayZhi,
+        hourGan: bazi.hourGan,
+        hourZhi: bazi.hourZhi,
+        dayMaster: document.getElementById('dayMaster').innerText,
+        fiveElements: document.getElementById('fiveElements').innerText,
+        favorableElements: document.getElementById('favorableElements').innerText,
+        unfavorableElements: document.getElementById('unfavorableElements').innerText,
+        gender: gender,
+        birthPlace: address
+    };
+
     try {
-        console.log('准备发送分析请求:', { baziData, gender, address });
-        
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                bazi: baziData,
-                gender: gender,
-                address: address
-            })
+            body: JSON.stringify(baziData),
         });
-        
-        console.log('收到服务器响应:', response.status, response.statusText);
-        
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('API错误响应:', errorData);
-            throw new Error(errorData.error || `服务器错误，请稍后重试 (${response.status})`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || `服务器响应错误: ${response.status}`);
         }
-        
+
         const data = await response.json();
 
         // 诊断日志：打印从服务器收到的原始数据
         console.log('从服务器收到的原始分析数据:', JSON.stringify(data, null, 2));
 
-        if (data.analysis && typeof data.analysis === 'object') {
-            document.getElementById('analysis-personality').innerText = data.analysis.personality || '暂无分析';
-            document.getElementById('analysis-wealth').innerText = data.analysis.wealth || '暂无分析';
-            document.getElementById('analysis-career').innerText = data.analysis.career || '暂无分析';
-            document.getElementById('analysis-health').innerText = data.analysis.health || '暂无分析';
-            document.getElementById('analysis-marriage').innerText = data.analysis.marriage || '暂无分析';
+        // 兼容有或没有 analysis 包装的情况
+        const analysis = data.analysis || data;
+
+        if (analysis && typeof analysis === 'object') {
+            document.getElementById('analysis-personality').innerText = analysis.personality || '暂无分析';
+            document.getElementById('analysis-wealth').innerText = analysis.fortune || analysis.wealth || '暂无分析';
+            document.getElementById('analysis-career').innerText = analysis.career || '暂无分析';
+            document.getElementById('analysis-health').innerText = analysis.health || '暂无分析';
+            document.getElementById('analysis-marriage').innerText = analysis.marriage || analysis.family || '暂无分析';
+        } else {
+            throw new Error('未能获取到有效的分析结果对象。');
         }
-        
-        if (!data || Object.keys(data).length === 0) {
-            throw new Error('未收到有效的分析结果');
-        }
-        
-        // 格式化分析结果
-        const formattedResult = `
-            <div class="analysis-section">
-                <h3>性格特征</h3>
-                <p>${data.personality || '暂无分析'}</p>
-                
-                <h3>财运分析</h3>
-                <p>${data.wealth || '暂无分析'}</p>
-                
-                <h3>事业运势</h3>
-                <p>${data.career || '暂无分析'}</p>
-                
-                <h3>健康状况</h3>
-                <p>${data.health || '暂无分析'}</p>
-                
-                <h3>婚姻生活</h3>
-                <p>${data.marriage || '暂无分析'}</p>
-            </div>
-        `;
-        
-        deepseekResult.innerHTML = formattedResult;
-        return data;
+
     } catch (error) {
-        console.error('分析出错:', error);
-        deepseekResult.innerHTML = `
-            <div class="error-message">
-                <h3>分析过程中出现错误</h3>
-                <p>${error.message}</p>
-                <p>请稍后重试或联系管理员</p>
-            </div>
-        `;
-        throw error;
+        console.error('DeepSeek分析请求失败:', error);
+        // 在所有分析框中显示错误
+        const errorMessage = `分析失败: ${error.message}`;
+        document.getElementById('analysis-personality').innerText = errorMessage;
+        document.getElementById('analysis-wealth').innerText = errorMessage;
+        document.getElementById('analysis-career').innerText = errorMessage;
+        document.getElementById('analysis-health').innerText = errorMessage;
+        document.getElementById('analysis-marriage').innerText = errorMessage;
     } finally {
-        // 隐藏加载动画
+        // 隐藏加载动画并显示结果
         deepseekLoading.style.display = 'none';
+        deepseekResult.style.display = 'grid';
     }
 }
 
