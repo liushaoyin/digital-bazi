@@ -1530,7 +1530,17 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
         }
         
         const data = await response.json();
-        console.log('分析结果:', data);
+
+        // 诊断日志：打印从服务器收到的原始数据
+        console.log('从服务器收到的原始分析数据:', JSON.stringify(data, null, 2));
+
+        if (data.analysis && typeof data.analysis === 'object') {
+            document.getElementById('analysis-personality').innerText = data.analysis.personality || '暂无分析';
+            document.getElementById('analysis-wealth').innerText = data.analysis.wealth || '暂无分析';
+            document.getElementById('analysis-career').innerText = data.analysis.career || '暂无分析';
+            document.getElementById('analysis-health').innerText = data.analysis.health || '暂无分析';
+            document.getElementById('analysis-marriage').innerText = data.analysis.marriage || '暂无分析';
+        }
         
         if (!data || Object.keys(data).length === 0) {
             throw new Error('未收到有效的分析结果');
