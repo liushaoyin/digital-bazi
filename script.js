@@ -307,47 +307,34 @@ function getZhi(index) {
 }
 
 // 计算八字
-function calculateBaZi(date, hour) {
-    try {
-        const lunar = Lunar.fromDate(date);
-        console.log('计算八字:', {
-            date: date.toISOString(),
-            lunarYear: lunar.getYear(),
-            lunarMonth: lunar.getMonth(),
-            lunarDay: lunar.getDay(),
-            yearGan: lunar.getYearGan(),
-            yearZhi: lunar.getYearZhi(),
-            monthGan: lunar.getMonthGan(),
-            monthZhi: lunar.getMonthZhi(),
-            dayGan: lunar.getDayGan(),
-            dayZhi: lunar.getDayZhi()
-        });
-
-        const yearGan = lunar.getYearGan();
-        const yearZhi = lunar.getYearZhi();
-        const monthGan = lunar.getMonthGan();
-        const monthZhi = lunar.getMonthZhi();
-        const dayGan = lunar.getDayGan();
-        const dayZhi = lunar.getDayZhi();
-        const hourZhi = getHourZhi(hour);
-        const hourGan = getGan((lunar.getDayGanIndex() * 2 + Math.floor(hour / 2)) % 10);
-
-        return {
-            yearGan,
-            yearZhi,
-            monthGan,
-            monthZhi,
-            dayGan,
-            dayZhi,
-            hourGan,
-            hourZhi,
-            solarDate: date.toLocaleDateString('zh-CN'),
-            lunarDate: `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`
-        };
-    } catch (error) {
-        console.error('计算八字时出错:', error);
-        throw new Error('计算八字失败，请检查输入日期是否正确');
+function calculateBaZi(date, hour, dateType, gender) {
+    let lunar;
+    if (dateType === 'lunar') {
+        const [year, month, day] = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+        lunar = Lunar.fromYmd(year, month, day);
+    } else {
+        lunar = Solar.fromDate(date).getLunar();
     }
+
+    const bazi = {
+        yearGan: lunar.getYearGan(),
+        yearZhi: lunar.getYearZhi(),
+        monthGan: lunar.getMonthGan(),
+        monthZhi: lunar.getMonthZhi(),
+        dayGan: lunar.getDayGan(),
+        dayZhi: lunar.getDayZhi(),
+        hourGan: lunar.getTimeGan(),
+        hourZhi: lunar.getTimeZhi()
+    };
+
+    const additionalInfo = {
+        solarDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
+        lunarDate: lunar.toString(),
+        gender,
+        dateType
+    };
+
+    return { bazi, additionalInfo };
 }
 
 // 天干五行值
