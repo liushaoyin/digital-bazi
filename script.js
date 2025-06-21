@@ -816,19 +816,36 @@ function initApp() {
         // 添加开始测算按钮事件监听
         const calculateBtn = document.getElementById('calculateBtn');
         if (calculateBtn) {
-            calculateBtn.addEventListener('click', function() {
-                if (checkAllFieldsFilled()) {
-                    // 显示加载状态
-                    calculateBtn.disabled = true;
-                    calculateBtn.innerHTML = '<div class="spinner"></div> 测算中...';
+            calculateBtn.addEventListener('click', async function() {
+                if (this.disabled) return;
+
+                // 隐藏键盘
+                document.activeElement.blur();
+
+                try {
+                    this.disabled = true;
+                    this.textContent = '测算中...';
                     
-                    performBaZiCalculation().finally(() => {
-                        // 恢复按钮状态
-                        calculateBtn.disabled = false;
-                        calculateBtn.innerHTML = '开始测算';
-                    });
-                } else {
-                    alert('请填写所有必填信息');
+                    // 执行八字计算
+                    const result = performBaZiCalculation();
+                    
+                    if (result) {
+                        // 显示八字结果
+                        displayResults(result.bazi, result.additionalInfo);
+
+                        // 获取性别和地址
+                        const gender = document.getElementById('gender').value;
+                        const address = document.getElementById('address').value;
+
+                        // 调用DeepSeek进行分析
+                        await analyzeWithDeepSeek(result.bazi, gender, address);
+                    }
+                } catch (error) {
+                    console.error('An error occurred during calculation:', error);
+                    showToast(error.message || '测算时发生未知错误', 'error');
+                } finally {
+                    this.disabled = false;
+                    this.textContent = '开始测算';
                 }
             });
         }
@@ -1488,17 +1505,17 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
     
     // 显示分析区域和加载动画
     deepseekSection.style.display = 'block';
-    deepseekLoading.style.display = 'block';
+    deepseekLoading.style.display = 'flex';
     deepseekResult.innerHTML = '';
+    deepseekSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     try {
         console.log('准备发送分析请求:', { baziData, gender, address });
         
-        const response = await fetch(API_URL, {
+        const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 bazi: baziData,
@@ -1555,21 +1572,10 @@ async function analyzeWithDeepSeek(baziData, gender, address) {
         `;
         throw error;
     } finally {
+        // 隐藏加载动画
         deepseekLoading.style.display = 'none';
     }
 }
-
-// 修改表单提交处理函数
-document.getElementById('dateForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // ... 现有的八字计算代码 ...
-    
-    // 在显示结果后调用 DeepSeek 分析
-    const gender = document.getElementById('gender').value;
-    const address = document.getElementById('address').value;
-    await analyzeWithDeepSeek(bazi, gender, address);
-});
 
 // 添加移动端点击事件处理
 document.addEventListener('DOMContentLoaded', function() {
