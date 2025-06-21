@@ -653,33 +653,43 @@ document.querySelectorAll('input[type="number"]').forEach(input => {
 
 // 执行排盘
 function performBaZiCalculation() {
-    return new Promise((resolve, reject) => {
-        const birthdate = elements.birthdate.value;
-        const birthtime = elements.birthtime.value;
-        const gender = elements.gender.value;
-        const address = elements.address.value;
+    if (!checkAllFieldsFilled()) {
+        showToast('请填写所有必填信息', 'error');
+        return null;
+    }
 
-        try {
-            const date = new Date(birthdate);
-            const bazi = calculateBaZi(date, parseInt(birthtime));
-            displayResults(bazi, {
-                gender: gender,
-                address: address
-            });
-            resolve();
-        } catch (error) {
-            console.error('排盘计算错误:', error);
-            reject(error);
-        }
-    });
+    const dateType = document.querySelector('input[name="dateType"]:checked').value;
+    const birthdate = document.getElementById('birthdate').value;
+    const birthtime = parseInt(document.getElementById('birthtime').value, 10);
+    const gender = document.getElementById('gender').value;
+
+    if (!birthdate || isNaN(birthtime) || !gender) {
+        showToast('请确保所有信息都已正确填写。', 'error');
+        return null;
+    }
+
+    try {
+        const dateParts = birthdate.split('-').map(p => parseInt(p, 10));
+        const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+
+        const { bazi, additionalInfo } = calculateBaZi(date, birthtime, dateType, gender);
+
+        return { bazi, additionalInfo };
+
+    } catch (error) {
+        console.error('八字计算出错:', error);
+        showToast(`计算失败: ${error.message}`, 'error');
+        return null;
+    }
 }
 
-// 检查所有必填字段是否已填写
 function checkAllFieldsFilled() {
-    return elements.birthdate.value && 
-           elements.birthtime.value && 
-           elements.gender.value && 
-           elements.address.value;
+    const birthdate = document.getElementById('birthdate').value;
+    const birthtime = document.getElementById('birthtime').value;
+    const gender = document.getElementById('gender').value;
+    const address = document.getElementById('address').value;
+
+    return birthdate && birthtime && gender && address;
 }
 
 // 地址历史记录相关函数
