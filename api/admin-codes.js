@@ -1,3 +1,15 @@
+const { MongoClient } = require('mongodb');
+
+// 输出环境变量到 Vercel 日志
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+
+module.exports = async (req, res) => {
+  // ... 你的原有代码 ...
+};
+
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
