@@ -7,15 +7,6 @@ const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 module.exports = async (req, res) => {
-  // ... 你的原有代码 ...
-};
-
-import { MongoClient } from 'mongodb';
-
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
-
-export default async (req, res) => {
   await client.connect();
   const db = client.db('bazi');
   const codes = db.collection('codes');
@@ -27,13 +18,7 @@ export default async (req, res) => {
 
   if (req.method === 'POST') {
     const { code, times, lifetime } = req.body;
-    await codes.insertOne({ code, times, lifetime: !!lifetime, used: 0, createdAt: new Date() });
-    return res.json({ success: true });
-  }
-
-  if (req.method === 'DELETE') {
-    const { code } = req.body;
-    await codes.deleteOne({ code });
+    await codes.insertOne({ code, times, lifetime: !!lifetime, used: 0, created: Date.now() });
     return res.json({ success: true });
   }
 
