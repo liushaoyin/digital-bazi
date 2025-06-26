@@ -7,21 +7,9 @@
         }
     ],
     "routes": [
-        {
-            "src": "/api/.*",
-            "dest": "server.js"
-        },
-        {
-            "src": "/admin",
-            "dest": "server.js"
-        },
-        {
-            "src": "/",
-            "dest": "server.js"
-        },
-        {
-            "src": "/(.*\\.(?:css|js|html|png|jpg|jpeg|gif|svg))",
-            "dest": "/$1"
-        }
+    { "src": "/(.*\\.(?:css|js|html|png|jpg|jpeg|gif|svg))", "dest": "/$1" },
+    { "src": "/api/.*", "dest": "server.js" },
+    { "src": "/admin", "dest": "server.js" },
+    { "src": "/", "dest": "server.js" }
     ]
 } 
