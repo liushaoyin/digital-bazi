@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -96,6 +96,12 @@ app.post('/api/analyze', async (req, res) => {
 // Serve admin page
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// 添加一个捕获所有未处理路由的中间件用于调试
+app.use((req, res, next) => {
+    console.log(`未处理的请求: ${req.method} ${req.path}`);
+    res.status(404).send('路由未找到');
 });
 
 app.listen(port, () => {
