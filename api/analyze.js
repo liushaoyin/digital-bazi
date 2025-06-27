@@ -62,8 +62,11 @@ export default async function handler(req, res) {
 
     res.status(200).json(analysisResult);
 
-  }    catch (error) {
-     console.error('DeepSeek API 调用出错:', error);
-     res.status(500).json({ error: 'Failed to get analysis from DeepSeek.', details: error.message });
-   }
+  }   catch (error) {
+  console.error('DeepSeek API 调用出错:', error);
+  res.status(500).json({
+    error: 'Failed to get analysis from DeepSeek.',
+    details: error.stack || error.message || error
+  });
+}
 }
